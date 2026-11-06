@@ -2,7 +2,7 @@
 
 <h1 align="center">Djåse</h1>
 
-<p align="center"><b>La dictée vocale qui reste sur votre PC.</b><br>Vous parlez, le texte s'écrit, dans n'importe quel programme de Windows.</p>
+<p align="center"><b>La dictée vocale en français qui reste sur votre PC.</b><br>Vous parlez, le texte s'écrit, dans n'importe quel programme de Windows.</p>
 
 <p align="center">
   <a href="https://github.com/ManuelWarland/djase/releases/latest"><b>Télécharger l'installateur</b></a> ·
@@ -39,6 +39,7 @@ Windows peut avertir qu'il ne connaît pas l'éditeur de l'installateur (il n'es
 
 ### Ce qu'il demande
 
+- **Langue : le français uniquement** (reconnaissance, commandes, correction et interface).
 - Windows 11, 64 bits, et un micro.
 - Environ 4,5 Go de place sur le disque C:.
 - De la mémoire vive : environ 7 Go quand tout est chargé. Sans la relecture par Qwen (elle se coupe dans les Réglages), environ 2,5 Go.
@@ -81,6 +82,14 @@ python -m venv .venv
 Ensuite : `Lancer dictee.cmd` (avec une console qui montre le journal).
 
 **Fabriquer l'exe et l'installateur** : `pyinstaller --noconfirm djase.spec` produit `dist\Djase\`, puis [Inno Setup 6](https://jrsoftware.org/isinfo.php) compile `djase.iss`. Le mode d'emploi se refabrique avec `guide\build.py` (Chrome ou Edge) ; ses captures viennent de `guide\maquette.py`, qui sert la vraie fenêtre de Djåse avec des données inventées.
+
+## Et les autres langues ?
+
+Les moteurs de reconnaissance comprennent 25 langues européennes, mais tout ce qui fait Djåse est pensé pour le français : les commandes dites (« virgule », « efface », « à la ligne »), la relecture par Qwen, la correction par Grammalecte, les règles d'écriture et l'interface. Une autre langue demande ses propres commandes, son propre correcteur et surtout de vraies dictées pour tout vérifier.
+
+Vous parlez une autre langue et Djåse vous tente ? Ouvrez un ticket dans les [Issues](https://github.com/ManuelWarland/djase/issues) : c'est avec des personnes qui dictent dans leur langue qu'un portage peut se faire.
+
+> **English.** Djåse is built for French only: spoken commands, text cleanup, grammar checking and the interface are all French. The speech models understand 25 European languages, so a port is possible with help from native speakers who can test their own dictation. Interested? Open an [issue](https://github.com/ManuelWarland/djase/issues).
 
 ## Pourquoi « Djåse » ?
 
