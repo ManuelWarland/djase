@@ -1,0 +1,414 @@
+/* Mode d'emploi de Djåse : A4, papier blanc, couleurs de la charte LumAutoSam et or de Djåse. */
+
+
+:root{
+
+
+  --nuit:#1a1a2e; --nuit2:#1a2744; --nuit3:#0f1a35; --carte:#16213e;
+
+
+  --or:#f2b705; --or2:#ffe08a; --vert:#2ecc71; --rouge:#e74c3c; --orange:#f39c12; --bleu:#2980b9;
+
+
+  --encre:#18202e; --encre2:#465266; --pale:#7b8797; --ligne:#e3e7ee; --creme:#f7f5ef;
+
+
+  --info:#e6eef9; --info-d:#245089; --ok:#e2f5e9; --ok-d:#1d7a43; --att:#fff3d9; --att-d:#8a5b00;
+
+
+}
+
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+
+@page{size:A4;margin:0}
+
+
+html,body{background:#d9dde3}
+
+
+body{font-family:"Segoe UI",Arial,sans-serif;color:var(--encre);font-size:9.6pt;line-height:1.45;
+
+
+     -webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+
+.page{width:210mm;height:297mm;position:relative;overflow:hidden;background:#fff;margin:0 auto 10mm;break-after:page}
+
+
+@media print{html,body{background:none}.page{margin:0}}
+
+
+h1,h2,h3,h4{font-family:"Segoe UI Variable Display","Segoe UI",sans-serif}
+
+
+code,.mono{font-family:Consolas,monospace;font-size:.95em}
+
+
+a{color:inherit;text-decoration:none}
+
+
+p+p{margin-top:2mm}
+
+
+b{font-weight:600}
+
+
+
+
+
+/* habillage */
+
+
+.haut{position:absolute;left:18mm;right:18mm;top:9mm;display:flex;justify-content:space-between;font-size:7.3pt;
+
+
+      color:var(--pale);letter-spacing:.09em;text-transform:uppercase;font-weight:600}
+
+
+.haut .marque{color:var(--encre)} .haut .marque i{font-style:normal;color:#c69400}
+
+
+.pied{position:absolute;left:18mm;right:18mm;bottom:9mm;display:flex;justify-content:space-between;font-size:7.4pt;
+
+
+      color:var(--pale);border-top:1px solid var(--ligne);padding-top:2.4mm}
+
+
+.pied b{color:var(--encre)}
+
+
+.corps{position:absolute;left:18mm;right:18mm;top:17mm;bottom:17mm}
+
+
+.onglet{position:absolute;right:0;width:6.5mm;height:44mm;border-radius:3mm 0 0 3mm;writing-mode:vertical-rl;
+
+
+        font:700 6.8pt "Segoe UI",sans-serif;letter-spacing:.13em;text-transform:uppercase;display:flex;
+
+
+        align-items:center;justify-content:center;background:var(--nuit2);color:var(--or)}
+
+
+.surtitre{font:700 7.6pt "Segoe UI";letter-spacing:.15em;text-transform:uppercase;color:#b88a00;margin-bottom:1mm}
+
+
+h1.t{font-size:22pt;line-height:1.1;font-weight:700}
+
+
+h2.t{font-size:13pt;margin:5mm 0 1.8mm;font-weight:700}
+
+
+.chapeau{font-size:10.4pt;color:var(--encre2);margin:2.5mm 0 5mm;max-width:165mm}
+
+
+.discret{color:var(--encre2)} .petit{font-size:8.2pt}
+
+
+ul.p{padding-left:4.5mm} ul.p li{margin:.9mm 0;color:var(--encre2)} ul.p li b{color:var(--encre)}
+
+
+ol.n{padding-left:5mm} ol.n li{margin:1mm 0;color:var(--encre2)} ol.n li b{color:var(--encre)}
+
+
+
+
+
+/* encarts façon Djåse : bandeau gris, corps clair */
+
+
+.encart{border-radius:3.5mm;overflow:hidden;border:1px solid var(--ligne);background:#fff}
+
+
+.encart .bandeau{background:linear-gradient(135deg,#616161,#454545);color:#fff;font:700 7.6pt "Segoe UI";
+
+
+                 letter-spacing:.13em;text-transform:uppercase;padding:2mm 3.6mm;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+
+
+.encart .dedans{padding:3mm 3.8mm}
+
+
+.encart .dedans p,.encart .dedans li{font-size:8.7pt;color:var(--encre2)}
+
+
+.encart .dedans b{color:var(--encre)}
+
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:4mm}
+
+
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:3.5mm}
+
+
+.boite{border-radius:3.5mm;padding:3.4mm 3.8mm}
+
+
+.boite h4{font-size:9.6pt;margin-bottom:1.2mm}
+
+
+.boite p,.boite li{font-size:8.6pt;color:var(--encre2)}
+
+
+.boite.sombre{background:var(--nuit2);color:#fff} .boite.sombre p{color:#c8d2e2} .boite.sombre h4{color:var(--or)}
+
+
+.info{background:var(--info);border-radius:2.5mm;padding:2.4mm 3.4mm;font-size:8.5pt;color:#1c3d68}
+
+
+.ok{background:var(--ok);border-radius:2.5mm;padding:2.4mm 3.4mm;font-size:8.5pt;color:#17502e}
+
+
+.att{background:var(--att);border-radius:2.5mm;padding:2.4mm 3.4mm;font-size:8.5pt;color:#5d4100}
+
+
+.info b,.ok b,.att b{color:inherit}
+
+
+
+
+
+/* touches */
+
+
+kbd{display:inline-block;font:600 7.9pt "Segoe UI";background:#f3f5f8;border:1px solid #c9d0da;border-bottom-width:2px;
+
+
+    border-radius:1.4mm;padding:.1mm 1.5mm;color:var(--encre);white-space:nowrap}
+
+
+.dit{font-weight:600;color:var(--encre)} .dit::before{content:"«\00a0"} .dit::after{content:"\00a0»"}
+
+
+.res{font-family:Consolas,monospace;background:#f3f5f8;border-radius:1.2mm;padding:.2mm 1.4mm;color:var(--encre)}
+
+
+
+
+
+/* tableaux */
+
+
+table.t{width:100%;border-collapse:collapse;font-size:8.6pt}
+
+
+table.t th{text-align:left;font:700 7.3pt "Segoe UI";letter-spacing:.1em;text-transform:uppercase;color:var(--pale);
+
+
+           padding:1.4mm 2mm;border-bottom:1.5px solid var(--encre)}
+
+
+table.t td{padding:1.5mm 2mm;border-bottom:1px solid var(--ligne);vertical-align:top;color:var(--encre2)}
+
+
+table.t td:first-child{color:var(--encre);white-space:nowrap}
+
+
+table.t tr:last-child td{border-bottom:none}
+
+
+
+
+
+/* gestes */
+
+
+.geste{display:grid;grid-template-columns:38mm 1fr;gap:4mm;align-items:start;padding:3mm 0;border-bottom:1px solid var(--ligne)}
+
+
+.geste:last-child{border-bottom:none}
+
+
+.geste .touches{font-size:9pt}
+
+
+.geste h4{font-size:10pt;margin-bottom:.8mm}
+
+
+.geste p{font-size:8.7pt;color:var(--encre2)}
+
+
+.num{width:8.5mm;height:8.5mm;border-radius:50%;background:var(--nuit2);color:var(--or);font:800 10pt "Segoe UI";
+
+
+     display:flex;align-items:center;justify-content:center;flex:none}
+
+
+.etape{display:flex;gap:3.5mm;align-items:flex-start;margin:3mm 0}
+
+
+.etape h4{font-size:10pt;margin-bottom:.6mm}
+
+
+.etape p{font-size:8.7pt;color:var(--encre2)}
+
+
+
+
+
+/* captures */
+
+
+.capture{border-radius:3mm;overflow:hidden;border:1px solid #2a3550;box-shadow:0 1.5mm 4mm rgba(15,26,53,.18)}
+
+
+.capture img{display:block;width:100%}
+
+
+.legende{font-size:7.8pt;color:var(--pale);margin-top:1.4mm}
+
+
+
+
+
+/* pastille dessinée */
+
+
+.pastille{display:inline-flex;align-items:center;gap:1.1mm;background:#121722;border-radius:5mm;padding:1.6mm 3.4mm;height:8mm}
+
+
+.pastille i{display:block;width:1.1mm;border-radius:.6mm;background:#fff}
+
+
+.pastille.or i{background:var(--or)}
+
+
+.pastille.txt{color:#fff;font-size:8pt;font-weight:600}
+
+
+
+
+
+/* couverture */
+
+
+.couv{background:linear-gradient(160deg,var(--nuit2),var(--nuit3) 55%,var(--nuit));color:#fff}
+
+
+.couv .halo{position:absolute;width:160mm;height:160mm;border-radius:50%;right:-60mm;top:-55mm;
+
+
+            background:radial-gradient(circle,rgba(242,183,5,.28),rgba(242,183,5,0) 65%)}
+
+
+.couv .tete{position:absolute;left:20mm;top:30mm;right:20mm}
+
+
+.couv .tete img{display:block;width:30mm;height:30mm;border-radius:6mm;box-shadow:0 2mm 6mm rgba(0,0,0,.45)}
+
+
+.couv .etiquette{display:inline-block;font:600 7.6pt "Segoe UI";letter-spacing:.14em;text-transform:uppercase;color:var(--or2);
+
+
+                 border:1px solid rgba(255,224,138,.45);border-radius:20px;padding:1mm 3.2mm;margin:9mm 0 5mm}
+
+
+.couv h1{font-size:60pt;font-weight:800;line-height:.95}
+
+
+.couv h1 span{color:var(--or)}
+
+
+.couv .sous{font-size:15pt;color:#cdd6e6;margin-top:5mm;max-width:150mm;line-height:1.35}
+
+
+.couv .trois{position:absolute;left:20mm;right:20mm;top:150mm;display:grid;grid-template-columns:repeat(3,1fr);gap:5mm}
+
+
+.couv .trois div{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:4mm;padding:4.5mm}
+
+
+.couv .trois h3{font-size:11pt;color:var(--or);margin-bottom:1.5mm}
+
+
+.couv .trois p{font-size:8.8pt;color:#c8d2e2}
+
+
+.couv .geste-couv{position:absolute;left:20mm;right:20mm;top:222mm;text-align:center;font-size:12pt;color:#dfe6f2}
+
+
+.couv .geste-couv kbd{font-size:11pt;background:#25324f;color:#fff;border-color:#3b4b70;padding:.4mm 2.4mm}
+
+
+.couv .bas{position:absolute;left:20mm;right:20mm;bottom:14mm;display:flex;justify-content:space-between;font-size:8pt;color:#93a0b8}
+
+
+
+
+
+/* sommaire */
+
+
+.som a{display:flex;align-items:baseline;gap:2mm;padding:1.6mm 0;border-bottom:1px dotted #c8cfd9;font-size:10pt}
+
+
+.som a .d{flex:1} .som a b{font-weight:700;color:#b88a00}
+
+
+.som h3{font-size:8pt;letter-spacing:.13em;text-transform:uppercase;color:var(--pale);margin:4mm 0 1mm}
+
+
+
+
+
+/* fiche-mémo */
+
+
+.memo{background:var(--nuit2);color:#fff}
+
+
+.memo .corps{color:#fff}
+
+
+.memo h1.t{color:#fff} .memo .surtitre{color:var(--or)}
+
+
+.memo .bloc{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:3.5mm;padding:3.4mm 4mm}
+
+
+.memo .bloc h4{color:var(--or);font-size:9.6pt;margin-bottom:1.6mm}
+
+
+.memo .bloc td{padding:.9mm 0;font-size:8.6pt;color:#d5ddea;vertical-align:top}
+
+
+.memo .bloc td:first-child{white-space:nowrap;padding-right:3mm;color:#fff}
+
+
+.memo kbd{background:#25324f;color:#fff;border-color:#3b4b70}
+
+
+.memo .dit{color:#fff}
+
+
+.memo .pied{border-top-color:rgba(255,255,255,.15);color:#93a0b8} .memo .pied b{color:#fff}
+
+
+.memo .haut{color:#93a0b8} .memo .haut .marque{color:#fff}
+
+
+
+
+
+.lp{display:flex;align-items:center;gap:3mm;margin:0 0 2.4mm}
+
+
+.lp .pastille{flex:none}
+
+
+table.t.large td:first-child{white-space:normal}
+
+
+table.t.large td:last-child{width:30mm}
+
+
+table.t.formes td:first-child{white-space:normal;width:38mm}
+
+
+table.t.formes td:last-child{white-space:normal}
+
+
+table.t.reg td:first-child{white-space:normal;width:42%}
+
+

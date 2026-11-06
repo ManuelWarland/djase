@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Djåse</title>
+<link rel="icon" href="/icone.png">
+<style>
+/* Charte commune avec LumAutoSam (valeurs reprises de son interface, lumauto_sam.ino, 23/10) :
+   fond #1a1a2e, en-tête #1a2744 → #0f1a35, encarts #16213e / #1a2744, titres #7a8aaa, vert #2ecc71,
+   boutons bleus #2980b9 → #3498db, rouge #e74c3c. Accent : l'or de l'icône de Djåse.
+   Polices Windows seulement, aucune ressource extérieure : rien ne sort du PC. */
+:root {
+  --fond: #1a1a2e; --nav: #0f1a35; --carte: #16213e; --carte-survol: #1a2744; --champ: #0f1a35;
+  --ligne: #2a3a5e; --texte: #ffffff; --gris: #aaaaaa; --titre: #7a8aaa; --or: #f2b705; --orange: #f39c12;
+  --rouge: #e74c3c; --vert: #2ecc71; --sombre: #0f0f1a; --bulle: #1a2744;
+  --ombre: 0 12px 34px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.05);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--fond); color: var(--texte); font: 14px/1.5 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; display: flex; }
+button, input, select { font: inherit; color: inherit; }
+
+/* Menu de gauche */
+nav { width: 210px; flex: none; background: linear-gradient(160deg, #1a2744, #0f1a35); padding: 18px 10px;
+      display: flex; flex-direction: column; gap: 3px; box-shadow: inset -1px 0 0 rgba(255,255,255,.05); }
+nav button { all: unset; cursor: pointer; padding: 9px 12px; border-radius: 8px; color: var(--gris); display: flex; gap: 10px; align-items: center; }
+nav button .ico { width: 20px; text-align: center; font-size: 15px; }
+nav button:hover { background: rgba(255,255,255,.05); color: var(--texte); }
+nav button.actif { background: rgba(255,255,255,.08); color: var(--texte); box-shadow: inset 3px 0 0 var(--or), 0 2px 8px rgba(0,0,0,.3); }
+nav button:focus-visible { outline: 2px solid var(--or); }
+nav .version { margin-top: auto; padding: 0 12px; font-size: 11px; color: var(--titre); letter-spacing: 1px; }
+
+/* En-tête fixe : seule la page défile, et dans les pages à liste, seule la liste (demande de Manu du 23/10) */
+main { flex: 1; min-width: 0; overflow: hidden; padding: 20px 26px 0; display: flex; flex-direction: column; gap: 18px; }
+
+/* En-tête façon LumAutoSam : carte en dégradé, badge d'état */
+.entete { border-radius: 18px; background: linear-gradient(160deg, #1a2744, #0f1a35); box-shadow: var(--ombre);
+          padding: 16px 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.entete img { width: 52px; height: 52px; filter: drop-shadow(0 4px 10px rgba(0,0,0,.5)); }
+.entete .nom { font: 600 26px "Segoe UI Variable Display", "Segoe UI", sans-serif; text-shadow: 0 1px 3px rgba(0,0,0,.8); line-height: 1.1; }
+.entete .sous { color: var(--titre); font-size: 12px; letter-spacing: 1px; }
+.badge { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 20px;
+         font-weight: 700; letter-spacing: 1px; font-size: 13px; background: rgba(255,255,255,.07); box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+.point { width: 10px; height: 10px; border-radius: 50%; display: inline-block; box-shadow: 0 0 6px currentColor; }
+.point.pret { background: var(--vert); color: var(--vert); animation: clignote 2s infinite; }
+.point.chargement { background: var(--orange); color: var(--orange); }
+.point.pause, .point.arrete { background: #7f8c8d; color: #7f8c8d; }
+@keyframes clignote { 0%, 100% { opacity: 1 } 50% { opacity: .25 } }
+.details { width: 100%; display: flex; gap: 18px; flex-wrap: wrap; font-size: 12px; color: var(--gris);
+           border-top: 1px solid rgba(255,255,255,.06); padding-top: 10px; }
+.details b { color: var(--texte); font-weight: 600; }
+
+h1 { font: 600 21px "Segoe UI Variable Display", "Segoe UI", sans-serif; margin: 0; }
+.aide { color: var(--gris); margin: 0; font-size: 13px; }  /* toute la largeur : pas de 2e ligne inutile (capture de Manu, 23/10) */
+.page { display: none; flex-direction: column; gap: 16px; }
+/* Marges intérieures : l'ombre des encarts n'est pas rognée par le défilement */
+.page.visible { display: flex; flex: 1; min-height: 0; overflow-y: auto; padding: 2px 14px 22px; margin: 0 -14px; }
+.page > * { flex: none; }
+/* Encart borné : il s'arrête au bas de la fenêtre ; sa liste (.defile) défile, ses boutons restent visibles */
+.page > .borne { flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.borne > * { flex: none; }
+.borne > .defile, .borne > .encart-corps.avec-defile { flex: 0 1 auto; min-height: 0; }
+.defile { overflow-y: auto; min-height: 110px; }
+.avec-defile { display: flex; flex-direction: column; }
+.avec-defile > * { flex: none; }
+.avec-defile > .defile { flex: 0 1 auto; }
+
+/* Encarts avec titre en bandeau, comme « ⚙ PARAMETRES » de LumAutoSam */
+.encart { background: var(--carte); border-radius: 16px; overflow: hidden; box-shadow: var(--ombre); }
+.encart-titre { background: linear-gradient(135deg, #616161, #454545); padding: 9px 16px; font-size: 12px; color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,.8);
+                font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,.05);
+                display: flex; align-items: center; gap: 8px; }
+.encart-corps { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+.encart-corps.serre { padding: 4px 0; gap: 0; }
+/* Page À propos : texte justifié, comme celle de PnyxAI */
+.presentation { gap: 0; }
+.presentation p { margin: 0 0 9px; line-height: 1.55; max-width: 78ch; text-align: justify; hyphens: auto; }
+.presentation h4 { margin: 8px 0 6px; color: var(--or); font-size: 14px; }
+#apropos code { font: 13px Consolas, monospace; color: var(--texte); }
+
+.champ { background: var(--champ); border: 1px solid #2c3b60; border-radius: 8px; padding: 8px 11px; outline: none; min-width: 0;
+         box-shadow: inset 0 2px 4px rgba(0,0,0,.4); }
+.champ:focus { border-color: var(--or); }
+select.champ { padding: 6px 8px; }
+
+/* Boutons en dégradé : or = action principale, bleu = secondaire, rouge = retirer */
+.bouton { border: none; border-radius: 8px; padding: 7px 15px; cursor: pointer; white-space: nowrap; color: #fff;
+          background: linear-gradient(135deg, #2980b9, #3498db); box-shadow: 0 4px 10px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.15);
+          transition: filter .15s, transform .1s; font-weight: 600; }
+.bouton:hover { filter: brightness(1.1); }
+.bouton:active { transform: translateY(1px); }
+.bouton.or { background: linear-gradient(135deg, #e0a000, #f2b705); color: #1b1c20; }
+.bouton.rouge { background: linear-gradient(135deg, #c0392b, #e74c3c); }
+.bouton.discret { background: rgba(255,255,255,.07); box-shadow: none; font-weight: 400; color: var(--gris); }
+.bouton.discret:hover { color: #fff; background: rgba(255,255,255,.12); }
+.bouton.petit { padding: 3px 10px; font-size: 12px; }
+.vide { color: var(--gris); padding: 18px; text-align: center; }
+.rangee { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* Historique : boutons visibles au survol seulement */
+.recherche { display: flex; gap: 10px; align-items: center; }
+.recherche .champ { flex: 1; }
+.jour { color: var(--titre); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; padding: 12px 16px 4px; }
+.entree { display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; align-items: start; padding: 10px 16px;
+          border-bottom: 1px solid rgba(255,255,255,.05); }
+.entree:last-child { border-bottom: none; }
+.entree:hover { background: rgba(255,255,255,.035); }
+.entree .h { color: var(--titre); font: 12px "Cascadia Mono", Consolas, monospace; padding-top: 2px; }
+.entree .t { min-width: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.entree small { display: block; color: var(--gris); font-size: 12px; margin-top: 3px; white-space: normal; }
+.entree .actions { display: flex; gap: 6px; opacity: 0; transition: opacity .15s; }
+.entree:hover .actions, .entree:focus-within .actions, .entree .actions.lecture-en-cours { opacity: 1; }
+
+/* Dictionnaire, textes rapides */
+.colonnes { display: grid; grid-template-columns: minmax(230px, 1fr) minmax(320px, 1.6fr); gap: 18px; align-items: start; }
+/* Les deux encarts côte à côte : bornés à la hauteur qui reste, chacun défile seul */
+.page > .colonnes { flex: 0 1 auto; min-height: 0; grid-template-rows: minmax(0, 1fr); }
+.colonnes > .borne { max-height: 100%; min-height: 0; display: flex; flex-direction: column; }
+.puces { display: flex; flex-wrap: wrap; gap: 6px; }
+.puce { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); border-radius: 999px; padding: 3px 6px 3px 12px;
+        display: inline-flex; align-items: center; gap: 4px; }
+.puce button { all: unset; cursor: pointer; color: var(--gris); padding: 0 5px; border-radius: 50%; }
+.puce button:hover { color: #fff; background: var(--rouge); }
+.ligne { display: grid; grid-template-columns: 1fr 18px 1fr; gap: 8px; align-items: center; padding: 8px 16px; cursor: pointer;
+         border-bottom: 1px solid rgba(255,255,255,.05); }
+.ligne:last-child { border-bottom: none; }
+.ligne:hover { background: rgba(255,255,255,.035); }
+.ligne.choisie { background: rgba(242,183,5,.08); box-shadow: inset 3px 0 0 var(--or); }
+.ligne span { min-width: 0; overflow-wrap: anywhere; }
+.fleche { color: var(--or); text-align: center; }
+.formulaire { display: grid; grid-template-columns: 1fr 18px 1fr; gap: 8px; align-items: center; }
+.formulaire .boutons { grid-column: 1 / -1; display: flex; gap: 8px; }
+
+/* Style */
+.styles { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.style { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07); border-radius: 12px; padding: 14px 16px; cursor: pointer;
+         display: flex; flex-direction: column; gap: 8px; transition: border-color .15s, box-shadow .15s; }
+.style:hover { border-color: var(--titre); }
+.style.choisi { border-color: var(--or); box-shadow: 0 0 0 1px var(--or), 0 6px 18px rgba(242,183,5,.12); }
+.style .tete { display: flex; justify-content: space-between; align-items: center; }
+.style b { font-size: 15px; }
+.style .desc { color: var(--gris); font-size: 12.5px; }
+.rond { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #555; flex: none; }
+.style.choisi .rond { border-color: var(--or); background: radial-gradient(var(--or) 45%, transparent 50%); }
+.bulle { background: var(--bulle); border-radius: 8px; padding: 9px 12px; font-size: 13px; }
+.exception { display: grid; grid-template-columns: 1fr 190px auto; gap: 8px; align-items: center; padding: 8px 16px;
+             border-bottom: 1px solid rgba(255,255,255,.05); }
+
+/* Interrupteurs */
+.interrupteur { display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; padding: 9px 16px;
+                border-bottom: 1px solid rgba(255,255,255,.05); }
+.interrupteur:last-child { border-bottom: none; }
+.interrupteur input { display: none; }
+.interrupteur .piste { width: 40px; height: 22px; border-radius: 999px; background: #3a4566; position: relative; flex: none;
+                       transition: background .15s; box-shadow: inset 0 2px 4px rgba(0,0,0,.4); }
+.interrupteur .piste::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%;
+                              background: #fff; transition: left .15s; box-shadow: 0 1px 3px rgba(0,0,0,.5); }
+.interrupteur input:checked + .piste { background: linear-gradient(135deg, #e0a000, #f2b705); }
+.interrupteur input:checked + .piste::after { left: 21px; background: #1b1c20; }
+.interrupteur small { display: block; color: var(--gris); font-size: 12px; }
+.reglage { display: flex; align-items: center; gap: 12px; padding: 9px 16px; border-bottom: 1px solid rgba(255,255,255,.05); }
+.reglage span:first-child { width: 240px; }
+
+/* Journal */
+pre { background: var(--sombre); border-radius: 0; padding: 12px 16px; margin: 0; font: 12.5px/1.5 "Cascadia Mono", Consolas, monospace;
+      white-space: pre-wrap; overflow-wrap: anywhere; }
+/* Barre d'état en bas : une ligne, l'info utile de la page (demande de Manu du 23/10) */
+.statut { flex: none; margin: 0 -26px; padding: 6px 26px; font-size: 12px; color: var(--gris); white-space: nowrap;
+          overflow: hidden; text-overflow: ellipsis; background: linear-gradient(160deg, #1a2744, #0f1a35);
+          border-top: 1px solid rgba(255,255,255,.06); }
+.toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: var(--sombre); border: 1px solid var(--ligne);
+         border-radius: 999px; padding: 7px 16px 7px 12px; display: flex; gap: 8px; align-items: center; opacity: 0; transition: opacity .2s;
+         pointer-events: none; box-shadow: var(--ombre); }
+.toast.visible { opacity: 1; }
+.toast::before { content: ""; width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--or); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<nav>
+  <button data-page="historique"><span class="ico">🕘</span>Historique</button>
+  <button data-page="dictionnaire"><span class="ico">📖</span>Dictionnaire</button>
+  <button data-page="textes"><span class="ico">⚡</span>Textes rapides</button>
+  <button data-page="style"><span class="ico">🎨</span>Style</button>
+  <button data-page="reglages"><span class="ico">⚙️</span>Réglages</button>
+  <button data-page="journal"><span class="ico">📜</span>Journal</button>
+  <button data-page="apropos"><span class="ico">ℹ️</span>À propos</button>
+  <div class="version">DICTÉE 100 % LOCALE</div>
+</nav>
+<main>
+  <header class="entete">
+    <img src="/icone.png" alt="">
+    <div><div class="nom">Djåse</div><div class="sous">DICTÉE VOCALE · RIEN NE SORT DU PC</div></div>
+    <span class="badge"><span class="point chargement" id="point"></span><span id="etat">CHARGEMENT</span></span>
+    <div class="details" id="details"></div>
+  </header>
+
+  <div class="page" id="historique">
+    <div class="recherche"><h1>Historique</h1><input class="champ" id="recherche" placeholder="Rechercher dans vos dictées…" autocomplete="off"></div>
+    <div class="encart borne"><div class="encart-corps serre defile" id="entrees"></div></div>
+  </div>
+
+  <div class="page" id="dictionnaire">
+    <h1>Dictionnaire</h1>
+    <p class="aide">Mots : toujours écrits ainsi. Remplacements : ce que Djåse entend de travers, et ce qu'il doit écrire. Pris en compte dès la dictée suivante.</p>
+    <div class="rangee" style="margin-bottom:14px">
+      <label for="portee">Pour</label>
+      <input class="champ" id="portee" list="applis-connues" placeholder="toutes les applis" autocomplete="off" style="flex:1;max-width:340px">
+      <datalist id="applis-connues"></datalist>
+      <span class="aide" id="portee-aide" style="margin:0">Vide : partout. Un programme (fusion360.exe) ou un mot du titre (whatsapp) : seulement là.</span>
+    </div>
+    <div class="colonnes">
+      <section class="encart borne">
+        <div class="encart-titre">🔤 Mots</div>
+        <div class="encart-corps avec-defile">
+          <div class="puces defile" id="mots"></div>
+          <div class="rangee"><input class="champ" id="nouveau-mot" placeholder="Nouveau mot" style="flex:1"><button class="bouton" id="ajouter-mot">Ajouter</button></div>
+        </div>
+      </section>
+      <section class="encart borne">
+        <div class="encart-titre">🔁 Remplacements</div>
+        <div class="encart-corps serre defile" id="remplacements"></div>
+        <div class="encart-corps">
+          <div class="formulaire">
+            <input class="champ" id="entendu" placeholder="Entendu"><span class="fleche">→</span><input class="champ" id="ecrit" placeholder="Écrit">
+            <div class="boutons"><button class="bouton or" id="enregistrer-rempl">Enregistrer</button><button class="bouton rouge" id="supprimer-rempl">Supprimer</button></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="page" id="textes">
+    <h1>Textes rapides</h1>
+    <p class="aide">Ce que vous dites est remplacé par le texte, n'importe où dans une dictée. Choisissez une formule que vous ne dites pas par hasard : « insère mon GitHub » plutôt que « mon GitHub ». Dans le texte collé, <b>{date}</b> donne 23/10/2026, <b>{date_longue}</b> vendredi 23 octobre 2026 et <b>{heure}</b> 18h24, calculés au moment où vous dictez.</p>
+    <section class="encart borne">
+      <div class="encart-titre">⚡ Vos textes rapides</div>
+      <div class="encart-corps serre defile" id="liste-textes"></div>
+      <div class="encart-corps">
+        <div class="formulaire">
+          <input class="champ" id="dis" placeholder="Ce que vous dites"><span class="fleche">→</span><input class="champ" id="colle" placeholder="Ce qui est collé">
+          <div class="boutons"><button class="bouton or" id="enregistrer-texte">Enregistrer</button><button class="bouton rouge" id="supprimer-texte">Supprimer</button></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="page" id="style">
+    <h1>Style</h1>
+    <section class="encart">
+      <div class="encart-titre">🎨 Style par défaut</div>
+      <div class="encart-corps">
+        <div class="styles" id="styles"></div>
+        <label class="interrupteur" style="padding-left:0;border:none"><input type="checkbox" id="partout"><span class="piste"></span><span>Même style partout<small>Les exceptions ci-dessous sont alors ignorées.</small></span></label>
+      </div>
+    </section>
+    <section class="encart borne">
+      <div class="encart-titre">🪟 Exceptions par application</div>
+      <div class="encart-corps"><p class="aide">Un nom de programme (winword.exe) ou un mot du titre de la fenêtre : « whatsapp » vaut pour l'appli comme pour l'onglet de Chrome.</p></div>
+      <div class="encart-corps serre defile" id="exceptions"></div>
+      <div class="encart-corps">
+        <div class="rangee">
+          <input class="champ" id="nouvelle-appli" list="applis-vues" placeholder="Application" style="flex:1">
+          <datalist id="applis-vues"></datalist>
+          <select class="champ" id="nouveau-style"></select>
+          <button class="bouton or" id="ajouter-exception">Ajouter</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="page" id="reglages">
+    <h1>Réglages</h1>
+    <p class="aide">Ceux marqués d'une étoile prennent effet au prochain lancement de Djåse.</p>
+    <section class="encart"><div class="encart-titre">🎙️ Reconnaissance</div><div class="encart-corps serre" id="cases-reconnaissance">
+      <div class="reglage"><span>Voie du micro</span><select class="champ" id="entree"><option value="auto">auto (la plus forte)</option><option value="1">1</option><option value="2">2</option></select></div>
+      <div class="reglage"><span>Écoute après le relâchement</span><input class="champ" id="ecoute" type="number" min="0" max="1" step="0.1" style="width:90px"><span class="aide">secondes</span></div>
+    </div></section>
+    <section class="encart"><div class="encart-titre">✍️ Écriture</div><div class="encart-corps serre" id="cases-ecriture"></div></section>
+    <section class="encart"><div class="encart-titre">🖥️ Système</div><div class="encart-corps serre" id="cases-systeme"></div></section>
+  </div>
+
+  <div class="page" id="apropos">
+    <h1>À propos de Djåse</h1>
+    <section class="encart"><div class="encart-titre">🎙️ Djåse</div><div class="encart-corps presentation">
+      <p>Djåse transforme votre voix en texte, dans n'importe quel programme de Windows. Vous maintenez Ctrl+Win, vous parlez, vous relâchez&nbsp;: le texte arrive là où se trouve le curseur. Un courriel, un message WhatsApp, un document Word, une conversation avec une IA... c'est pareil partout.</p>
+      <p>Tout se passe sur votre PC. Pas de compte, pas d'abonnement, pas de serveur&nbsp;: votre voix ne part jamais sur Internet. Les modèles sont téléchargés une seule fois, au premier lancement. Ensuite, Djåse marche même sans connexion.</p>
+      <p>Il ne se contente pas de recopier ce qu'il entend. Il retire les «&nbsp;euh&nbsp;» et les hésitations, met la ponctuation que vous dictez, corrige les accords. Il comprend aussi des commandes&nbsp;: «&nbsp;à la ligne&nbsp;», «&nbsp;efface&nbsp;», «&nbsp;en gras&nbsp;», ou «&nbsp;Djåse, corrige Martin par Marten&nbsp;».</p>
+      <p>Et il apprend vos mots. Un nom de famille, un terme de métier, une adresse que vous dictez dix fois par jour&nbsp;: le dictionnaire et les textes rapides sont faits pour ça.</p>
+      <h4>Pourquoi il est né</h4>
+      <p>Djåse est né le 21 octobre 2026, à Liège, chez Manuel Warland. Il dictait alors ses textes avec un service de dictée en ligne bien connu. C'était pratique, mais chaque phrase partait sur les serveurs de l'entreprise, même en mode «&nbsp;confidentialité&nbsp;».</p>
+      <p>L'idée de départ tenait en une ligne&nbsp;: le même confort, sans que rien ne quitte le PC. La première version a écrit ses premières phrases le soir même. Puis, dictée après dictée, sont venus les commandes vocales, le dictionnaire, les styles, les textes rapides, et ces moteurs qui s'écoutent les uns les autres.</p>
+      <p>Rien n'y a été ajouté pour faire joli. Chaque réglage répond à un vrai besoin, chaque correction à une vraie erreur relevée dans l'historique.</p>
+      <p>Djåse n'a pas été fait seul. Manuel Warland l'a imaginé, essayé et corrigé à la voix, jour après jour. Le code a été écrit avec Claude, l'IA d'Anthropic, à ses côtés depuis le premier soir. Codex, d'OpenAI, et GLM l'ont relu et ont soufflé plusieurs idées, comme le vocabulaire propre à chaque application. Pensé d'abord pour un usage personnel, Djåse est devenu assez solide pour être partagé.</p>
+      <h4>Comment il s'y prend</h4>
+      <p>Pendant que vous parlez, plusieurs moteurs de reconnaissance écoutent. Pour une vraie phrase, c'est Canary, de NVIDIA, qui écrit le texte. Pour un mot seul ou une commande brève («&nbsp;virgule&nbsp;», «&nbsp;efface&nbsp;», «&nbsp;à la ligne&nbsp;»), trois moteurs comparent ce qu'ils ont entendu, et le plus sûr l'emporte&nbsp;: c'est là qu'une dictée se trompe le plus souvent, alors Djåse demande plusieurs avis.</p>
+      <p>Vient ensuite la relecture. Un petit modèle de langue, Qwen, reprend la phrase&nbsp;: il enlève les hésitations et les reprises («&nbsp;le mardi, non, plutôt le mercredi&nbsp;» devient «&nbsp;le mercredi&nbsp;»), et place la ponctuation. Grammalecte termine par les accords et les conjugaisons dont il est certain. Tout tourne sur le processeur&nbsp;: pas besoin de carte graphique.</p>
+      <h4>Au quotidien</h4>
+      <p>Un appui bref sur Ctrl+Win, et vous dictez les mains libres jusqu'au prochain Ctrl+Win (Échap annule). Ctrl+Win puis Maj recolle la dernière dictée, par exemple dans une autre fenêtre. Ctrl+Win+Alt passe en mode commande&nbsp;: rien n'est collé, Djåse écoute seulement un ordre, comme «&nbsp;retire tout&nbsp;».</p>
+      <p>Le style suit l'application&nbsp;: des phrases soignées dans Word ou Outlook, un ton plus décontracté dans WhatsApp, si vous le réglez ainsi. L'historique garde vos dictées, avec le son si vous le souhaitez, pour retrouver un texte ou comprendre une erreur.</p>
+      <h4>Ce qu'il demande</h4>
+      <p>Windows 11 en 64 bits, un micro, et environ 4,5 Go de place sur le disque pour le programme et ses modèles. Côté mémoire vive, comptez environ 7 Go quand tout est chargé. Sans la relecture par Qwen (elle se coupe dans les Réglages), Djåse se contente d'environ 2,5 Go, au prix d'un texte un peu moins propre.</p>
+      <h4>Pourquoi «&nbsp;Djåse&nbsp;»&nbsp;?</h4>
+      <p>En wallon de Liège, «&nbsp;djåse&nbsp;» veut dire «&nbsp;parle&nbsp;», «&nbsp;cause&nbsp;». Le nom dit simplement ce qu'on fait avec ce programme.</p>
+      <p>Le å n'a rien de nordique. L'écriture du wallon s'en sert pour un son entre le «&nbsp;a&nbsp;» et le «&nbsp;o&nbsp;», celui qu'on entend dans «&nbsp;djåse&nbsp;».</p>
+    </div></section>
+    <section class="encart"><div class="encart-titre">📜 Logiciel libre</div><div class="encart-corps presentation">
+      <p>Djåse est un logiciel libre, sous licence GNU GPL 3&nbsp;: vous pouvez l'utiliser, l'étudier, le modifier et le redistribuer, à condition de laisser les mêmes libertés à ceux qui le reçoivent. Il est fourni sans aucune garantie. Le texte de la licence est dans le fichier LICENSE, à côté du programme.</p>
+      <p>Il s'appuie sur le travail d'autres. Reconnaissance de la voix&nbsp;: Parakeet TDT 0.6B v3, Canary 1B v2 et FastConformer français, de NVIDIA (licence CC-BY 4.0, versions ONNX préparées par istupakov et OpenVoiceOS). Mise en forme du texte&nbsp;: Qwen3 4B Instruct 2507, de l'équipe Qwen (Apache 2.0), lancé par llama.cpp (MIT). Correction grammaticale&nbsp;: Grammalecte (GPL 3).</p>
+      <p>La liste complète des composants et de leurs licences est dans le fichier MENTIONS.md, à côté du programme.</p>
+    </div></section>
+    <section class="encart"><div class="encart-titre">🧾 Détails</div><div class="encart-corps serre">
+      <div class="reglage"><span>Version</span><code>0.1.0</code></div>
+      <div class="reglage"><span>Mode d'emploi</span><span>menu Démarrer, « Mode d'emploi de Djåse » (fichier <code>Djase_Mode_emploi.pdf</code>, à côté du programme)</span></div>
+      <div class="reglage"><span>Vos données</span><code>%LOCALAPPDATA%\Djåse</code></div>
+      <div class="reglage"><span>Modèles</span><code>%LOCALAPPDATA%\Djåse\modeles</code></div>
+      <div class="reglage"><span>Journal</span><code>%LOCALAPPDATA%\Djåse\journal.txt</code></div>
+      <div class="reglage"><span>Auteur</span><span>© 2026 Manuel Warland</span></div>
+    </div></section>
+  </div>
+
+  <div class="page" id="journal">
+    <h1>Journal</h1>
+    <section class="encart borne">
+      <div class="encart-titre">📜 Ce qu'affichait la fenêtre noire</div>
+      <pre class="defile" id="lignes"></pre>
+      <div class="encart-corps"><div class="rangee"><button class="bouton" id="copier-journal">Copier tout</button><span class="aide">pour le joindre à un signalement de problème</span></div></div>
+    </section>
+  </div>
+  <footer class="statut" id="statut"></footer>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const CLE = new URLSearchParams(location.search).get("t") || "";
+const $ = (s) => document.querySelector(s);
+const el = (balise, attrs = {}, ...enfants) => {
+  const e = document.createElement(balise);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else if (k === "class") e.className = v; else e.setAttribute(k, v);
+  }
+  for (const x of enfants) e.append(x);
+  return e;
+};
+async function api(chemin, donnees) {
+  const r = await fetch(chemin, { method: donnees ? "POST" : "GET", headers: { "X-Djase": CLE, "Content-Type": "application/json" },
+                                  body: donnees ? JSON.stringify(donnees) : undefined });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+let minuteurToast;
+function toast(texte) {
+  const t = $("#toast"); t.textContent = texte; t.classList.add("visible");
+  clearTimeout(minuteurToast); minuteurToast = setTimeout(() => t.classList.remove("visible"), 2200);
+}
+async function copier(texte) {
+  try { await navigator.clipboard.writeText(texte); } catch { await api("/api/copier", { texte }); }
+  toast("Copiée · Ctrl+V pour coller");
+}
+
+// ---- Navigation ----
+let pageActuelle = "";
+function statut(...parties) { $("#statut").textContent = parties.filter(Boolean).join("   ·   "); }
+function montrer(page) {
+  if (!document.getElementById(page)) page = "historique";
+  pageActuelle = page;
+  statut(page === "reglages" ? "* : pris en compte au prochain lancement de Djåse" : "");
+  document.querySelectorAll(".page").forEach((p) => p.classList.toggle("visible", p.id === page));
+  document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("actif", b.dataset.page === page));
+  ({ historique: chargerHistorique, dictionnaire: chargerDico, textes: chargerDico, style: chargerReglages,
+     reglages: chargerReglages, journal: chargerJournal })[page]();
+}
+document.querySelectorAll("nav button").forEach((b) => b.addEventListener("click", () => montrer(b.dataset.page)));
+
+// ---- Historique ----
+let entrees = [];
+let lecteur = null;
+async function chargerHistorique() { entrees = await api("/api/historique"); afficherHistorique(); }
+function afficherHistorique() {
+  const filtre = $("#recherche").value.toLowerCase();
+  const boite = $("#entrees"); boite.replaceChildren();
+  let jour = "";
+  const visibles = entrees.filter((e) => !filtre || e.texte.toLowerCase().includes(filtre));
+  if (pageActuelle === "historique")
+    statut(filtre ? `${visibles.length} dictée(s) sur ${entrees.length}` : `${entrees.length} dictée(s) affichée(s)`,
+      "historique gardé 1 an, audio 30 jours");
+  if (!visibles.length) { boite.append(el("div", { class: "vide" }, filtre ? "Aucune dictée ne contient ce texte." : "Pas encore de dictée.")); return; }
+  for (const e of visibles) {
+    if (e.jour !== jour) { jour = e.jour; boite.append(el("div", { class: "jour" }, jour)); }
+    const t = el("span", { class: "t" }, e.texte);
+    const notes = [];
+    if (e.correction) notes.push(`Corrigé à la voix : ${e.correction[0]} → ${e.correction[1]}`);
+    if (e.entendu) notes.push(`Entendu : « ${e.entendu} »`);
+    if (e.grammaire && e.grammaire.length) notes.push("Grammaire : " + e.grammaire.map(([a, b]) => `${a} → ${b}`).join(", "));
+    if (e.appli) notes.push(`Dans ${e.appli}` + (e.style && e.style !== "formel" ? ` · style ${e.style_nom}` : ""));
+    if (notes.length) t.append(el("small", {}, notes.join(" · ")));
+    const actions = el("span", { class: "actions" }, el("button", { class: "bouton petit discret", onclick: () => copier(e.texte) }, "Copier"));
+    if (e.audio) actions.append(el("button", { class: "bouton petit discret", onclick: (ev) => ecouter(e.audio, ev.currentTarget) }, "▶ Écouter"));
+    boite.append(el("div", { class: "entree" }, el("span", { class: "h" }, e.heure), t, actions));
+  }
+}
+function ecouter(fichier, bouton) {
+  if (lecteur) {
+    lecteur.pause();
+    document.querySelectorAll(".lecture").forEach((b) => { b.textContent = "▶ Écouter"; b.classList.remove("lecture"); b.parentElement.classList.remove("lecture-en-cours"); });
+  }
+  if (lecteur && lecteur.dataset.fichier === fichier) { lecteur = null; return; }
+  lecteur = new Audio(`/audio/${encodeURIComponent(fichier)}?t=${CLE}`);
+  lecteur.dataset.fichier = fichier;
+  bouton.textContent = "■ Arrêter"; bouton.classList.add("lecture"); bouton.parentElement.classList.add("lecture-en-cours");
+  lecteur.onended = () => { bouton.textContent = "▶ Écouter"; bouton.classList.remove("lecture"); bouton.parentElement.classList.remove("lecture-en-cours"); lecteur = null; };
+  lecteur.play();
+}
+$("#recherche").addEventListener("input", afficherHistorique);
+
+// ---- Dictionnaire et textes rapides ----
+let dico = { mots: [], remplacements: {}, textes_rapides: {}, par_appli: {}, applis: [], motifs: 0 };
+let portee = "";  // "" : toutes les applis ; sinon le vocabulaire propre à cette appli
+async function chargerDico() { dico = await api("/api/dictionnaire"); afficherDico(); afficherTextes(); }
+async function sauverDico(champs) { dico = await api("/api/dictionnaire", champs); afficherDico(); afficherTextes(); toast("Enregistré"); }
+function vocab() { return portee ? { mots: [], remplacements: {}, ...(dico.par_appli[portee] || {}) } : dico; }
+function sauverVocab(champs) {  // mots / remplacements, dans la portée choisie
+  if (!portee) return sauverDico(champs);
+  const v = vocab();
+  return sauverDico({ par_appli: { ...dico.par_appli, [portee]: { mots: v.mots, remplacements: v.remplacements, ...champs } } });
+}
+$("#portee").addEventListener("input", (e) => { portee = e.target.value.trim().toLowerCase(); afficherDico(); });
+function afficherDico() {
+  const connues = $("#applis-connues"); connues.replaceChildren();
+  for (const a of new Set([...Object.keys(dico.par_appli || {}), ...(dico.applis || [])])) connues.append(el("option", { value: a }));
+  const v = vocab();
+  const mots = $("#mots"); mots.replaceChildren();
+  for (const m of v.mots) mots.append(el("span", { class: "puce" }, m,
+    el("button", { title: `Retirer ${m}`, onclick: () => sauverVocab({ mots: v.mots.filter((x) => x !== m) }) }, "✕")));
+  remplirLignes("#remplacements", v.remplacements, "#entendu", "#ecrit",
+    portee ? `Aucun remplacement propre à « ${portee} ».` : "Aucun remplacement.");
+  if (pageActuelle === "dictionnaire")
+    statut(`${v.mots.length} mot(s)`, `${Object.keys(v.remplacements).length} remplacement(s)` + (portee ? ` pour « ${portee} »` : ""),
+      `${dico.motifs} règles avancées (expressions régulières) : gardées telles quelles, modifiables seulement dans dictionnaire.json`);
+}
+function afficherTextes() {
+  if (pageActuelle === "textes")
+    statut(`${Object.keys(dico.textes_rapides).length} texte(s) rapide(s)`, "{date}, {date_longue} et {heure} : calculés au moment de la dictée");
+  remplirLignes("#liste-textes", dico.textes_rapides, "#dis", "#colle", "Aucun texte rapide pour l'instant. Exemple : « insère mon GitHub » → votre lien."); }
+function remplirLignes(boite, paires, champA, champB, vide) {
+  const b = $(boite); b.replaceChildren();
+  const cles = Object.keys(paires);
+  if (!cles.length) { b.append(el("div", { class: "vide" }, vide)); return; }
+  for (const a of cles) {
+    const ligne = el("div", { class: "ligne", title: "Cliquer pour modifier" }, el("span", {}, a), el("span", { class: "fleche" }, "→"), el("span", {}, paires[a]));
+    ligne.addEventListener("click", () => {
+      b.querySelectorAll(".choisie").forEach((x) => x.classList.remove("choisie")); ligne.classList.add("choisie");
+      $(champA).value = a; $(champB).value = paires[a]; $(champA).dataset.origine = a;
+    });
+    b.append(ligne);
+  }
+}
+// Remplacements : dans la portée choisie (toutes les applis ou une seule) ; textes rapides : toujours partout.
+const source = (cle) => (cle === "textes_rapides" ? dico : vocab());
+const sauver = (cle, champs) => (cle === "textes_rapides" ? sauverDico(champs) : sauverVocab(champs));
+function enregistrerPaire(cle, champA, champB) {
+  const a = $(champA).value.trim(), v = $(champB).value.trim();
+  if (!a || !v) return;
+  const paires = { ...source(cle)[cle] };
+  if ($(champA).dataset.origine && $(champA).dataset.origine !== a) delete paires[$(champA).dataset.origine];
+  paires[a] = v;
+  $(champA).value = $(champB).value = ""; delete $(champA).dataset.origine;
+  sauver(cle, { [cle]: paires });
+}
+function supprimerPaire(cle, champA, champB) {
+  const a = $(champA).dataset.origine || $(champA).value.trim();
+  if (!(a in source(cle)[cle])) return;
+  const paires = { ...source(cle)[cle] }; delete paires[a];
+  $(champA).value = $(champB).value = ""; delete $(champA).dataset.origine;
+  sauver(cle, { [cle]: paires });
+}
+$("#ajouter-mot").addEventListener("click", () => { const m = $("#nouveau-mot").value.trim(); const v = vocab(); if (m && !v.mots.includes(m)) { $("#nouveau-mot").value = ""; sauverVocab({ mots: [...v.mots, m] }); } });
+$("#nouveau-mot").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#ajouter-mot").click(); });
+$("#enregistrer-rempl").addEventListener("click", () => enregistrerPaire("remplacements", "#entendu", "#ecrit"));
+$("#supprimer-rempl").addEventListener("click", () => supprimerPaire("remplacements", "#entendu", "#ecrit"));
+$("#enregistrer-texte").addEventListener("click", () => enregistrerPaire("textes_rapides", "#dis", "#colle"));
+$("#supprimer-texte").addEventListener("click", () => supprimerPaire("textes_rapides", "#dis", "#colle"));
+
+// ---- Style et réglages ----
+let reglages = {};
+async function chargerReglages() { reglages = await api("/api/reglages"); afficherStyle(); afficherReglages(); }
+async function sauverReglages(champs) { reglages = await api("/api/reglages", champs); afficherStyle(); afficherReglages(); toast("Enregistré"); }
+const optionsStyle = (choisi) => Object.entries(reglages.styles).map(([k, s]) => { const o = el("option", { value: k }, s.nom); if (k === choisi) o.selected = true; return o; });
+function afficherStyle() {
+  if (pageActuelle === "style")
+    statut(`${Object.keys(reglages.styles_applis || {}).length} exception(s) par application`,
+      reglages.style_partout ? "même style partout : exceptions ignorées" : "");
+  const boite = $("#styles"); boite.replaceChildren();
+  for (const [k, s] of Object.entries(reglages.styles)) {
+    const carte = el("div", { class: "style" + (k === reglages.style ? " choisi" : ""), tabindex: "0", role: "radio", "aria-checked": String(k === reglages.style) },
+      el("div", { class: "tete" }, el("b", {}, s.nom), el("span", { class: "rond" })), el("span", { class: "desc" }, s.desc), el("div", { class: "bulle" }, s.exemple));
+    carte.addEventListener("click", () => sauverReglages({ style: k }));
+    carte.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") sauverReglages({ style: k }); });
+    boite.append(carte);
+  }
+  $("#partout").checked = reglages.style_partout;
+  const ex = $("#exceptions"); ex.replaceChildren();
+  const applis = Object.entries(reglages.styles_applis);
+  if (!applis.length) ex.append(el("div", { class: "vide" }, "Aucune exception : le style par défaut vaut partout."));
+  for (const [appli, style] of applis) {
+    const choix = el("select", { class: "champ", "aria-label": `Style pour ${appli}` }, ...optionsStyle(style));
+    choix.addEventListener("change", () => sauverReglages({ styles_applis: { ...reglages.styles_applis, [appli]: choix.value } }));
+    const retirer = el("button", { class: "bouton petit rouge", onclick: () => { const r = { ...reglages.styles_applis }; delete r[appli]; sauverReglages({ styles_applis: r }); } }, "Retirer");
+    ex.append(el("div", { class: "exception" }, el("span", {}, appli), choix, retirer));
+  }
+  $("#nouveau-style").replaceChildren(...optionsStyle("decontracte"));
+  $("#applis-vues").replaceChildren(...reglages.applis_vues.map((a) => el("option", { value: a })));
+}
+$("#partout").addEventListener("change", (e) => sauverReglages({ style_partout: e.target.checked }));
+$("#ajouter-exception").addEventListener("click", () => {
+  const a = $("#nouvelle-appli").value.trim().toLowerCase(); if (!a) return;
+  $("#nouvelle-appli").value = "";
+  sauverReglages({ styles_applis: { ...reglages.styles_applis, [a]: $("#nouveau-style").value } });
+});
+const CASES = {
+  "#cases-reconnaissance": [["nettoyage", "Nettoyage par Qwen *", "bah, ben, « non, plutôt », ponctuation dite"],
+                            ["grammaire", "Grammaire *", "accords et conjugaisons (Grammalecte)"],
+                            ["canary_court", "Canary pour les dictées courtes *", "moins de 2 s (virgule, espace…), toujours en français ; environ 1 Go de mémoire en plus"],
+                            ["oreilles", "Oreilles pour les commandes ratées", "dictée courte : Canary et Parakeet réécoutent le son pour rattraper « à la ligne », « efface »… (environ 0,3 s)"]],
+  "#cases-ecriture": [["double_espace", "Deux espaces après un point", "après . ? ! entre deux phrases, et entre deux dictées à la suite"]],
+  "#cases-systeme": [["son_messages", "Son des messages", "un ding quand Djåse affiche un message, le son d'avertissement en cas de problème"],
+                     ["historique", "Garder l'historique", "la liste de la page Historique"],
+                     ["audio", "Garder l'audio de chaque dictée", "pour réécouter une erreur"],
+                     ["demarrage", "Démarrer avec Windows", "raccourci dans votre dossier Démarrage"]],
+};
+function afficherReglages() {
+  for (const [boite, cases] of Object.entries(CASES)) {
+    const b = $(boite);
+    b.querySelectorAll(".interrupteur").forEach((x) => x.remove());
+    const fixes = b.firstChild;  // les réglages fixes (micro, écoute) restent en bas de « Reconnaissance »
+    for (const [cle, nom, detail] of cases) {
+      const c = el("input", { type: "checkbox" }); c.checked = !!reglages[cle];
+      c.addEventListener("change", () => sauverReglages({ [cle]: c.checked }));
+      b.insertBefore(el("label", { class: "interrupteur" }, c, el("span", { class: "piste" }), el("span", {}, nom, el("small", {}, detail))), fixes);
+    }
+  }
+  $("#entree").value = String(reglages.entree);
+  $("#ecoute").value = reglages.ecoute_apres;
+}
+$("#entree").addEventListener("change", (e) => sauverReglages({ entree: e.target.value }));
+$("#ecoute").addEventListener("change", (e) => sauverReglages({ ecoute_apres: parseFloat(e.target.value) }));
+
+// ---- Journal ----
+async function chargerJournal() {
+  const lignes = await api("/api/journal");
+  const pre = $("#lignes"); const enBas = pre.scrollTop + pre.clientHeight >= pre.scrollHeight - 20;
+  pre.textContent = lignes.join("\n");
+  if (pageActuelle === "journal") statut(`${lignes.length} ligne(s), les 500 dernières au plus`);
+  if (enBas) pre.scrollTop = pre.scrollHeight;
+}
+$("#copier-journal").addEventListener("click", () => copier($("#lignes").textContent));
+
+// ---- En-tête : badge d'état et détails ; demandes de Djåse (menu de l'icône) ----
+const NOMS_ETAT = { pret: "PRÊT", chargement: "CHARGEMENT", pause: "EN PAUSE" };
+let dateHistorique = null;
+async function battement() {
+  try {
+    const e = await api("/api/etat");
+    $("#point").className = "point " + e.etat;
+    $("#etat").textContent = NOMS_ETAT[e.etat] || e.etat;
+    $("#details").replaceChildren(
+      el("span", {}, "Mémoire ", el("b", {}, e.memoire)),
+      el("span", {}, "Qwen ", el("b", {}, e.qwen)),
+      el("span", {}, "Canary ", el("b", {}, e.canary)),
+      el("span", {}, "Commande ", el("b", {}, "Ctrl+Win+Alt")));
+    if (e.page && e.page !== pageActuelle) montrer(e.page);
+    if (pageActuelle === "journal") chargerJournal();
+    // Nouvelle dictée : on recharge l'historique, sauf pendant une écoute (le bouton ■ Arrêter serait perdu).
+    if (e.historique !== dateHistorique) {
+      if (pageActuelle === "historique" && dateHistorique !== null && !lecteur) chargerHistorique();
+      if (!lecteur) dateHistorique = e.historique;
+    }
+  } catch {
+    $("#point").className = "point arrete";
+    $("#etat").textContent = "ARRÊTÉ";
+    $("#details").textContent = "Djåse est arrêté : relancez-le, puis rouvrez cette fenêtre.";
+  }
+}
+setInterval(battement, 2000);
+montrer(new URLSearchParams(location.search).get("page") || "historique");
+battement();
+</script>
+</body>
+</html>

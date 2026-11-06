@@ -1,0 +1,17 @@
+{
+  "_aide": "mots : orthographe imposée (et soufflée au moteur). remplacements : ce que le moteur entend de travers -> la bonne forme. remplacements_motifs : idem avec conditions (expressions régulières). par_appli : mots et remplacements propres à un programme. Relu à chaque dictée, pas besoin de relancer l'appli.",
+  "mots": [
+    "GitHub",
+    "Wi-Fi",
+    "e-mail",
+    "YouTube",
+    "WhatsApp"
+  ],
+  "remplacements": {
+    "git-up": "GitHub",
+    "Git Up": "GitHub",
+    "GitUp": "GitHub"
+  },
+  "remplacements_motifs": {},
+  "par_appli": {}
+}

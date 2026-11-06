@@ -1,0 +1,21 @@
+# Environnement et fichiers lourds : se réinstallent
+.venv/
+modeles/
+llama/
+__pycache__/
+*.pyc
+
+# Données personnelles (normalement dans %LOCALAPPDATA%\Djåse, jamais ici)
+dictionnaire.json
+reglages.json
+historique.jsonl
+textes_rapides.json
+journal*.txt
+audio/
+
+# Fabrication
+build/
+dist/
+dist_installateur/
+guide/sortie/*.html
+*.log

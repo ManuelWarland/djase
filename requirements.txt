@@ -1,0 +1,16 @@
+# Bibliothèques Python de Djåse (Python 3.13, Windows 64 bits). Versions de la 0.1.0.
+keyboard==0.13.5
+sounddevice==0.5.6
+soundfile==0.14.0
+numpy==2.5.4
+onnx-asr==0.12.0
+onnxruntime==1.31.0
+huggingface_hub==2.2.0
+pystray==0.19.5
+pillow==13.0.0
+sv_ttk==2.6.1
+pyperclip==1.11.0
+# Grammalecte 2.3.0 n'est pas sur PyPI : installer l'archive Python de https://grammalecte.net/
+#   (pip install grammalecte-fr-v2.3.0.zip)
+# Fabrication de l'exe seulement :
+# pyinstaller==6.22.3
