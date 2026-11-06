@@ -8,7 +8,7 @@
 #ifndef Source
   #define Source "dist\Djase"
 #endif
-#define Version "0.1.0"
+#define Version "0.2.0"
 
 [Setup]
 AppId={{6B0E2D4C-5A1F-4E7B-9C3D-D7A5E0B1F2C8}
@@ -61,15 +61,28 @@ Type: files; Name: "{userprograms}\Désinstaller {#Nom}.lnk"
 Name: "{group}\{#Nom}"; Filename: "{app}\Djase.exe"; WorkingDir: "{app}"
 Name: "{group}\Mode d'emploi de {#Nom}"; Filename: "{app}\Djase_Mode_emploi.pdf"
 Name: "{group}\Désinstaller {#Nom}"; Filename: "{uninstallexe}"
-Name: "{userstartup}\{#Nom}"; Filename: "{app}\Djase.exe"; WorkingDir: "{app}"; Tasks: demarrage
+; en mise à jour silencieuse, Inno rejoue les tâches de la dernière installation (UsePreviousTasks) : le raccourci de
+; démarrage n'est alors recréé que s'il existe encore (Djåse le pose et le retire lui-même depuis son menu)
+Name: "{userstartup}\{#Nom}"; Filename: "{app}\Djase.exe"; WorkingDir: "{app}"; Tasks: demarrage; Check: DemarrageAGarder
 
 [Run]
 Filename: "{app}\Djase.exe"; Description: "Lancer {#Nom} maintenant (premier lancement : téléchargement des modèles, environ 4,3 Go)"; Flags: nowait postinstall skipifsilent
+; mise à jour lancée par Djåse lui-même (installation invisible, /VERYSILENT) : Djåse s'est fermé, on le relance ; en
+; installation normale, c'est la case ci-dessus qui s'en charge (skipifsilent), jamais les deux. « Silently » de la
+; documentation Inno couvre /SILENT et /VERYSILENT.
+Filename: "{app}\Djase.exe"; Flags: nowait skipifnotsilent
 
 [UninstallRun]
 Filename: "{sys}\taskkill.exe"; Parameters: "/IM Djase.exe /T /F"; Flags: runhidden; RunOnceId: "ArretDjase"
 
 [Code]
+// Installation normale : la case « Lancer au démarrage de Windows » décide. Mise à jour silencieuse : on ne recrée le
+// raccourci que s'il existe encore, pour ne pas le remettre chez quelqu'un qui l'a retiré depuis Djåse.
+function DemarrageAGarder: Boolean;
+begin
+  Result := (not WizardSilent) or FileExists(ExpandConstant('{userstartup}\{#Nom}.lnk'));
+end;
+
 // Djåse vit dans la zone de notification, sans fenêtre : le Gestionnaire de redémarrage de Windows ne sait pas le
 // fermer (vécu le 06/11/2026 : « L'assistant d'installation n'a pas pu arrêter toutes les applications »). On l'arrête
 // nous-mêmes avant la copie ; /T ferme aussi son moteur Qwen (llama-server, processus enfant), sans toucher au llama-server d'un autre programme.

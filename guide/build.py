@@ -65,7 +65,7 @@ def couverture(d):
     <img src="{CAP}icone.png" alt="">
     <div class="etiquette">Mode d'emploi · version {VERSION}</div>
     <h1>Dj<span>å</span>se</h1>
-    <p class="sous">La dictée vocale qui reste sur votre PC. Vous parlez, le texte s'écrit, dans n'importe quel programme de Windows.</p>
+    <p class="sous">La dictée vocale en français qui reste sur votre PC. Vous parlez, le texte s'écrit, dans n'importe quel programme de Windows.</p>
   </div>
   <div class="trois">
     <div><h3>100 % local</h3><p>Pas de compte, pas d'abonnement, pas de serveur. Votre voix ne quitte jamais votre ordinateur.</p></div>
@@ -320,6 +320,7 @@ def fenetre3(d):
     <tr><td>Son des messages</td><td>un petit son quand la pastille affiche un message</td></tr>
     <tr><td>Garder l'historique, l'audio</td><td>la page Historique et le bouton Écouter</td></tr>
     <tr><td>Démarrer avec Windows</td><td>le même que dans le menu de l'icône</td></tr>
+    <tr><td>Rechercher les mises à jour</td><td>une fois par jour, Djåse demande à GitHub le numéro de la dernière version. Décoché : aucune demande automatique</td></tr>
   </table>
 </div>
 <h2 class="t">Journal</h2>
@@ -330,7 +331,7 @@ def vie_privee(d):
     d.page("donnees", f'''
 <div class="surtitre">Aide</div>
 <h1 class="t">Vos données</h1>
-<p class="chapeau">Djåse n'envoie rien sur Internet. Après le téléchargement des modèles, vous pouvez même couper la connexion : il dicte pareil.</p>
+<p class="chapeau">Djåse n'envoie aucune dictée sur Internet. Après le téléchargement des modèles, vous pouvez même couper la connexion : il dicte pareil.</p>
 <div class="g2">
   <div class="encart"><div class="bandeau">Ce qui reste sur votre PC</div><div class="dedans">
   <p>Tout est rangé dans <code>%LOCALAPPDATA%\\Djåse</code> (menu de l'icône, <b>Ouvrir le dossier</b>) :</p>
@@ -344,10 +345,10 @@ def vie_privee(d):
     <tr><td><code>modeles\\</code></td><td>les modèles téléchargés (4,3 Go)</td></tr>
   </table></div></div>
   <div>
-    <div class="ok"><b>Rien ne sort.</b> La reconnaissance de la voix, la relecture par Qwen et la grammaire tournent sur votre processeur. Pas de compte, pas de statistiques d'utilisation, pas de mise à jour automatique.</div>
+    <div class="ok"><b>Aucune dictée ne sort.</b> La reconnaissance de la voix, la relecture par Qwen et la grammaire tournent sur votre processeur. Pas de compte, pas de statistiques d'utilisation. Une seule question part vers GitHub, une fois par jour : « quelle est la dernière version ? ». La case <b>Rechercher les mises à jour</b> des Réglages la coupe.</div>
     <div class="info" style="margin-top:3mm"><b>Garder moins longtemps, ou rien.</b> Dans les Réglages, coupez <b>Garder l'audio</b> ou <b>Garder l'historique</b>. Le ménage des vieilles dictées et des vieux sons se fait à chaque lancement de Djåse.</div>
     <div class="info" style="margin-top:3mm"><b>Tout effacer.</b> Quittez Djåse et supprimez le dossier <code>%LOCALAPPDATA%\\Djåse</code>. Les modèles seront retéléchargés au prochain lancement.</div>
-    <div class="att" style="margin-top:3mm"><b>Le seul accès à Internet</b> : le téléchargement des modèles, depuis Hugging Face, au premier lancement ou s'il en manque un.</div>
+    <div class="att" style="margin-top:3mm"><b>Les seuls accès à Internet</b> : le téléchargement des modèles, depuis Hugging Face, au premier lancement ou s'il en manque un, et la recherche d'une nouvelle version sur GitHub. Quand il y en a une, rien ne s'installe sans vous : la page <b>À propos</b> propose le bouton <b>Mettre à jour</b>, qui télécharge l'installateur, contrôle son empreinte, puis relance Djåse.</div>
   </div>
 </div>
 <h2 class="t">Logiciel libre</h2>

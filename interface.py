@@ -18,6 +18,8 @@ from pathlib import Path
 
 ICI = Path(__file__).parent
 from chemins import DONNEES, FIGE, PROGRAMME  # noqa: E402
+import maj  # noqa: E402
+from version import VERSION  # noqa: E402
 ICO = PROGRAMME / "djase_nuit.ico"  # nom changé avec l'icône bleu nuit : le cache d'icônes de Windows garde l'image par nom de fichier
 TEXTES = DONNEES / "textes_rapides.json"  # à part du dictionnaire : données perso, hors d'une future publication
 
@@ -167,7 +169,7 @@ DESCRIPTIONS_STYLE = {"formel": "Majuscules et ponctuation complète.",
                       "tres_decontracte": "Sans majuscules, sans virgules ni point final.",
                       "enthousiaste": "Le point final devient un point d'exclamation."}
 CLES_REGLAGES = {"nettoyage", "grammaire", "historique", "audio", "style", "style_partout", "styles_applis",
-                 "entree", "ecoute_apres", "double_espace", "canary_court", "oreilles", "son_messages"}
+                 "entree", "ecoute_apres", "double_espace", "canary_court", "oreilles", "son_messages", "verifier_maj"}
 JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
 MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre",
         "novembre", "décembre"]
@@ -271,7 +273,10 @@ class Serveur:
             page, self.page_demandee = self.page_demandee, None
             fichier = DONNEES / "historique.jsonl"  # date de l'historique : la page se recharge quand il change
             return {"texte": self.appli.texte_etat(), "page": page, **self.appli.etat_details(),
-                    "historique": fichier.stat().st_mtime if fichier.exists() else 0}
+                    "historique": fichier.stat().st_mtime if fichier.exists() else 0,
+                    "version": VERSION, "maj": self.appli.maj.etat()}
+        if chemin == "/api/maj":
+            return self.appli.maj.etat()
         if chemin == "/api/historique":
             return self.historique()
         if chemin == "/api/dictionnaire":
@@ -347,6 +352,21 @@ class Serveur:
             import pyperclip
             pyperclip.copy(str(donnees.get("texte", "")))
             return {"ok": True}
+        if chemin == "/api/maj/verifier":  # « Vérifier maintenant » : marche même case décochée (geste explicite)
+            self.appli.maj.verifier(auto=False)
+            return self.appli.maj.etat()
+        if chemin == "/api/maj/installer":  # « Mettre à jour » : télécharge, contrôle, lance l'installateur, Djåse se ferme
+            self.appli.maj.installer()
+            return self.appli.maj.etat()
+        if chemin == "/api/ouvrir":
+            # navigateur par défaut (la fenêtre est un Chrome --app : un lien y ouvrirait une fenêtre d'appli) ; seules
+            # les adresses du dépôt de Djåse sont acceptées
+            url = donnees.get("url")
+            if not maj.lien_autorise(url):
+                d.journal(f"Fenêtre : adresse refusée ({str(url)[:80]!r}).")
+                return {"ok": False}
+            os.startfile(url)
+            return {"ok": True}
         if chemin == "/api/dictionnaire":
             fichier = DONNEES / "dictionnaire.json"
             actuel = json.loads(fichier.read_text(encoding="utf-8"))
@@ -390,7 +410,7 @@ class Serveur:
                 elif cle == "ecoute_apres":
                     valeur = max(0.0, min(1.0, float(valeur)))
                 elif cle in ("nettoyage", "grammaire", "historique", "audio", "style_partout", "double_espace",
-                             "canary_court", "oreilles", "son_messages"):
+                             "canary_court", "oreilles", "son_messages", "verifier_maj"):
                     valeur = bool(valeur)
                 d.REGLAGES[cle] = valeur
                 a_sauver.append(cle)
@@ -500,6 +520,8 @@ class Appli:
         self.serveur = None  # démarré à la première ouverture de la fenêtre
         self.icone = None
         self.etat = None
+        # mises à jour : message de la pastille, et « Quitter » du menu pour la fermeture après l'installation
+        self.maj = maj.MisesAJour(d, d.journal, lambda texte: pastille.message(texte, duree=8), self.quitter)
 
     def demarrer(self):
         import pystray
@@ -530,6 +552,7 @@ class Appli:
         self.icone = pystray.Icon("Djase", dessiner_icone(64, "chargement", petite=True), "Djåse · chargement…", menu)
         threading.Thread(target=self.icone.run, daemon=True).start()
         threading.Thread(target=self._surveiller, daemon=True).start()
+        self.maj.demarrer()
 
     def etat_actuel(self):
         if self.d.ETAT["pause"]:
@@ -651,10 +674,14 @@ class Appli:
             self.fenetre = Fenetre(self, page)
 
     def quitter(self):
+        if getattr(self, "en_sortie", False):
+            return  # déjà en route (menu puis fermeture après une mise à jour, ou l'inverse)
+        self.en_sortie = True
         self.d.journal("Quitter (menu de l'icône).")
         icone, self.icone = self.icone, None
         fermer_fenetres()
-        icone.stop()
+        if icone:
+            icone.stop()
         self.pastille.executer(self.pastille.root.quit)
 
 

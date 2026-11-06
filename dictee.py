@@ -1,4 +1,4 @@
-"""Djåse : dictée vocale 100 % locale, rien ne sort du PC.
+"""Djåse : dictée vocale 100 % locale, la voix reste sur le PC.
 (Née le 21/10/2026 à Liège, chez Manuel Warland.)
 
 Ctrl+Win maintenu : dicter, relâcher pour coller le texte au curseur.
@@ -53,6 +53,7 @@ REGLAGES = {
     "canary_long": True,    # dictée longue (morceau de 2 s et plus) : Canary plutôt que Parakeet (banc du 24/10)
     "troisieme_oreille": True,  # dictée courte : le modèle NVIDIA français en 3e avis (+150 Mo de mémoire)
     "son_messages": True,   # un son Windows à chaque message de la pastille (ding / avertissement)
+    "verifier_maj": True,   # une fois par jour, demande à GitHub le numéro de la dernière version (maj.py) ; aucune dictée envoyée
     "style": "formel",      # formel, decontracte, tres_decontracte, enthousiaste
     "style_partout": False, # True : le même style partout, sans regarder l'application
     "styles_applis": {},    # {"whatsapp": "decontracte"} : nom du programme ou mot du titre de la fenêtre

@@ -8,7 +8,7 @@
 /* Charte commune avec LumAutoSam (valeurs reprises de son interface, lumauto_sam.ino, 23/10) :
    fond #1a1a2e, en-tête #1a2744 → #0f1a35, encarts #16213e / #1a2744, titres #7a8aaa, vert #2ecc71,
    boutons bleus #2980b9 → #3498db, rouge #e74c3c. Accent : l'or de l'icône de Djåse.
-   Polices Windows seulement, aucune ressource extérieure : rien ne sort du PC. */
+   Polices Windows seulement, aucune ressource extérieure (la page ne charge rien depuis Internet). */
 :root {
   --fond: #1a1a2e; --nav: #0f1a35; --carte: #16213e; --carte-survol: #1a2744; --champ: #0f1a35;
   --ligne: #2a3a5e; --texte: #ffffff; --gris: #aaaaaa; --titre: #7a8aaa; --or: #f2b705; --orange: #f39c12;
@@ -161,6 +161,25 @@ select.champ { padding: 6px 8px; }
 .interrupteur small { display: block; color: var(--gris); font-size: 12px; }
 .reglage { display: flex; align-items: center; gap: 12px; padding: 9px 16px; border-bottom: 1px solid rgba(255,255,255,.05); }
 .reglage span:first-child { width: 240px; }
+.reglage.haut { align-items: flex-start; }
+.reglage.haut > span:first-child { padding-top: 5px; }
+.reglage a, .bandeau-maj a { color: #3498db; cursor: pointer; }
+.reglage a:hover { text-decoration: underline; }
+
+/* Mises à jour : bandeau discret en haut de la fenêtre, et ligne « Mises à jour » de la page À propos */
+.bandeau-maj { display: none; flex: none; align-items: center; gap: 12px; padding: 7px 14px; border-radius: 12px; font-size: 13px;
+               background: linear-gradient(160deg, #1a2744, #0f1a35); box-shadow: var(--ombre); border-left: 3px solid var(--or); }
+.bandeau-maj.visible { display: flex; }
+.bandeau-maj .bouton { margin-left: auto; }
+.bandeau-maj .fermer { all: unset; cursor: pointer; color: var(--gris); padding: 0 6px; border-radius: 50%; }
+.bandeau-maj .fermer:hover { color: #fff; background: rgba(255,255,255,.12); }
+.maj { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.maj .etat-ok { color: var(--vert); }
+.maj .etat-dispo { color: var(--or); font-weight: 600; }
+.maj .etat-erreur { color: var(--orange); }
+.maj .discret-note { color: var(--gris); font-size: 12px; }
+.barre { height: 8px; border-radius: 999px; background: var(--champ); box-shadow: inset 0 2px 4px rgba(0,0,0,.4); overflow: hidden; max-width: 420px; }
+.barre > i { display: block; height: 100%; width: 0; background: linear-gradient(135deg, #e0a000, #f2b705); transition: width .3s; }
 
 /* Journal */
 pre { background: var(--sombre); border-radius: 0; padding: 12px 16px; margin: 0; font: 12.5px/1.5 "Cascadia Mono", Consolas, monospace;
@@ -189,9 +208,14 @@ pre { background: var(--sombre); border-radius: 0; padding: 12px 16px; margin: 0
   <div class="version">DICTÉE 100 % LOCALE</div>
 </nav>
 <main>
+  <div class="bandeau-maj" id="bandeau-maj">
+    <span id="bandeau-texte"></span>
+    <button class="bouton petit" id="bandeau-voir">Voir</button>
+    <button class="fermer" id="bandeau-fermer" title="Masquer jusqu'au prochain lancement" aria-label="Masquer">✕</button>
+  </div>
   <header class="entete">
     <img src="/icone.png" alt="">
-    <div><div class="nom">Djåse</div><div class="sous">DICTÉE VOCALE · RIEN NE SORT DU PC</div></div>
+    <div><div class="nom">Djåse</div><div class="sous">DICTÉE VOCALE · VOTRE VOIX RESTE SUR VOTRE PC</div></div>
     <span class="badge"><span class="point chargement" id="point"></span><span id="etat">CHARGEMENT</span></span>
     <div class="details" id="details"></div>
   </header>
@@ -283,9 +307,10 @@ pre { background: var(--sombre); border-radius: 0; padding: 12px 16px; margin: 0
 
   <div class="page" id="apropos">
     <h1>À propos de Djåse</h1>
+    <p class="aide">La dictée vocale en français qui reste sur votre PC</p>
     <section class="encart"><div class="encart-titre">🎙️ Djåse</div><div class="encart-corps presentation">
       <p>Djåse transforme votre voix en texte, dans n'importe quel programme de Windows. Vous maintenez Ctrl+Win, vous parlez, vous relâchez&nbsp;: le texte arrive là où se trouve le curseur. Un courriel, un message WhatsApp, un document Word, une conversation avec une IA... c'est pareil partout.</p>
-      <p>Tout se passe sur votre PC. Pas de compte, pas d'abonnement, pas de serveur&nbsp;: votre voix ne part jamais sur Internet. Les modèles sont téléchargés une seule fois, au premier lancement. Ensuite, Djåse marche même sans connexion.</p>
+      <p>Tout se passe sur votre PC. Pas de compte, pas d'abonnement, pas de serveur&nbsp;: votre voix ne part jamais sur Internet. Les modèles sont téléchargés une seule fois, au premier lancement. Ensuite, Djåse marche même sans connexion. Seule exception, une fois par jour&nbsp;: il demande à GitHub le numéro de la dernière version, pour vous prévenir s'il y en a une nouvelle (une case des Réglages coupe cette demande).</p>
       <p>Il ne se contente pas de recopier ce qu'il entend. Il retire les «&nbsp;euh&nbsp;» et les hésitations, met la ponctuation que vous dictez, corrige les accords. Il comprend aussi des commandes&nbsp;: «&nbsp;à la ligne&nbsp;», «&nbsp;efface&nbsp;», «&nbsp;en gras&nbsp;», ou «&nbsp;Djåse, corrige Martin par Marten&nbsp;».</p>
       <p>Et il apprend vos mots. Un nom de famille, un terme de métier, une adresse que vous dictez dix fois par jour&nbsp;: le dictionnaire et les textes rapides sont faits pour ça.</p>
       <h4>Pourquoi il est né</h4>
@@ -311,7 +336,19 @@ pre { background: var(--sombre); border-radius: 0; padding: 12px 16px; margin: 0
       <p>La liste complète des composants et de leurs licences est dans le fichier MENTIONS.md, à côté du programme.</p>
     </div></section>
     <section class="encart"><div class="encart-titre">🧾 Détails</div><div class="encart-corps serre">
-      <div class="reglage"><span>Version</span><code>0.1.0</code></div>
+      <div class="reglage"><span>Version</span><code id="maj-version"></code></div>
+      <div class="reglage haut"><span>Mises à jour</span><div class="maj">
+        <div id="maj-texte"></div>
+        <div class="etat-erreur" id="maj-erreur" hidden></div>
+        <div class="barre" id="maj-barre" hidden><i></i></div>
+        <div class="discret-note" id="maj-note" hidden></div>
+        <div class="rangee">
+          <button class="bouton" id="maj-verifier">Vérifier maintenant</button>
+          <button class="bouton or" id="maj-installer" hidden>Mettre à jour</button>
+          <button class="bouton discret" id="maj-nouveautes" hidden>Voir les nouveautés</button>
+        </div>
+      </div></div>
+      <div class="reglage"><span>Code source</span><a href="https://github.com/ManuelWarland/djase" data-lien>github.com/ManuelWarland/djase</a></div>
       <div class="reglage"><span>Mode d'emploi</span><span>menu Démarrer, « Mode d'emploi de Djåse » (fichier <code>Djase_Mode_emploi.pdf</code>, à côté du programme)</span></div>
       <div class="reglage"><span>Vos données</span><code>%LOCALAPPDATA%\Djåse</code></div>
       <div class="reglage"><span>Modèles</span><code>%LOCALAPPDATA%\Djåse\modeles</code></div>
@@ -369,7 +406,7 @@ function montrer(page) {
   document.querySelectorAll(".page").forEach((p) => p.classList.toggle("visible", p.id === page));
   document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("actif", b.dataset.page === page));
   ({ historique: chargerHistorique, dictionnaire: chargerDico, textes: chargerDico, style: chargerReglages,
-     reglages: chargerReglages, journal: chargerJournal })[page]();
+     reglages: chargerReglages, journal: chargerJournal, apropos: chargerMaj })[page]();
 }
 document.querySelectorAll("nav button").forEach((b) => b.addEventListener("click", () => montrer(b.dataset.page)));
 
@@ -527,7 +564,8 @@ const CASES = {
   "#cases-systeme": [["son_messages", "Son des messages", "un ding quand Djåse affiche un message, le son d'avertissement en cas de problème"],
                      ["historique", "Garder l'historique", "la liste de la page Historique"],
                      ["audio", "Garder l'audio de chaque dictée", "pour réécouter une erreur"],
-                     ["demarrage", "Démarrer avec Windows", "raccourci dans votre dossier Démarrage"]],
+                     ["demarrage", "Démarrer avec Windows", "raccourci dans votre dossier Démarrage"],
+                     ["verifier_maj", "Rechercher les mises à jour", "une fois par jour, Djåse demande à GitHub le numéro de la dernière version ; aucune dictée n'est envoyée"]],
 };
 function afficherReglages() {
   for (const [boite, cases] of Object.entries(CASES)) {
@@ -556,6 +594,66 @@ async function chargerJournal() {
 }
 $("#copier-journal").addEventListener("click", () => copier($("#lignes").textContent));
 
+// ---- Mises à jour (page À propos, bandeau du haut) ----
+const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+let maj = null, suiviMaj = null;
+let bandeauMasque = "";  // version dont on a masqué le bandeau (jusqu'au prochain lancement de la fenêtre)
+function dateMaj(secondes) {
+  const d = new Date(secondes * 1000);
+  const annee = d.getFullYear() !== new Date().getFullYear() ? ` ${d.getFullYear()}` : "";
+  return `${d.getDate() === 1 ? "1er" : d.getDate()} ${MOIS[d.getMonth()]}${annee} à ${d.getHours()}h${String(d.getMinutes()).padStart(2, "0")}`;
+}
+function afficherMaj() {
+  if (!maj) return;
+  const occupe = maj.phase !== "repos";
+  const bandeau = $("#bandeau-maj");
+  bandeau.classList.toggle("visible", !!maj.disponible && bandeauMasque !== maj.disponible);
+  $("#bandeau-texte").textContent = maj.disponible ? `Djåse ${maj.disponible} est disponible` : "";
+  $("#maj-version").textContent = maj.version;
+  let texte = "", classe = "";
+  if (maj.phase === "verification") texte = "Recherche en cours…";
+  else if (maj.phase === "telechargement") {
+    const pct = maj.total ? Math.floor(100 * maj.fait / maj.total) : 0;
+    texte = `Téléchargement de la version ${maj.disponible || ""} : ${pct} % (${(maj.fait / 1e6).toFixed(0)} sur ${(maj.total / 1e6).toFixed(0)} Mo)`;
+  } else if (maj.phase === "installation") texte = "Installation lancée : Djåse va se fermer, puis redémarrer tout seul.";
+  else if (maj.disponible) { texte = `Version ${maj.disponible} disponible`; classe = "etat-dispo"; }
+  else if (maj.verifie) { texte = `À jour, vérifié le ${dateMaj(maj.verifie)}`; classe = "etat-ok"; }
+  else texte = maj.automatique ? "Pas encore vérifié" : "Recherche désactivée";
+  const zone = $("#maj-texte"); zone.textContent = texte; zone.className = classe;
+  const erreur = $("#maj-erreur"); erreur.hidden = !(maj.erreur && !occupe); erreur.textContent = maj.erreur ? `Échec : ${maj.erreur}` : "";
+  const barre = $("#maj-barre"); barre.hidden = maj.phase !== "telechargement";
+  barre.firstElementChild.style.width = maj.total ? `${(100 * maj.fait / maj.total).toFixed(1)}%` : "0%";
+  const note = $("#maj-note");
+  const notes = [maj.disponible ? maj.note : "", !maj.automatique && (maj.verifie || occupe) ? "Recherche automatique désactivée (Réglages)." : ""].filter(Boolean);
+  note.hidden = !notes.length; note.textContent = notes.join(" ");
+  $("#maj-verifier").disabled = occupe;
+  $("#maj-installer").hidden = !(maj.disponible && maj.installable && !occupe);
+  $("#maj-nouveautes").hidden = !(maj.disponible && !occupe);
+}
+async function chargerMaj() { maj = await api("/api/maj"); afficherMaj(); suivreMaj(); }
+function suivreMaj() {  // pendant une recherche ou un téléchargement : l'état est relu plus souvent que le battement (2 s)
+  clearTimeout(suiviMaj);
+  if (!maj || maj.phase === "repos") return;
+  suiviMaj = setTimeout(async () => { try { maj = await api("/api/maj"); afficherMaj(); } catch {} suivreMaj(); }, 600);
+}
+async function actionMaj(chemin) {
+  try { maj = await api(chemin, {}); } catch (e) { toast("Impossible : " + e.message); }
+  afficherMaj(); suivreMaj();
+}
+async function ouvrirLien(url) {
+  try { const r = await api("/api/ouvrir", { url }); if (!r.ok) toast("Adresse refusée"); } catch (e) { toast("Impossible d'ouvrir le lien"); }
+}
+$("#maj-verifier").addEventListener("click", () => actionMaj("/api/maj/verifier"));
+$("#maj-installer").addEventListener("click", () => actionMaj("/api/maj/installer"));
+$("#maj-nouveautes").addEventListener("click", () => maj && ouvrirLien(maj.page));
+$("#bandeau-voir").addEventListener("click", () => montrer("apropos"));
+$("#bandeau-fermer").addEventListener("click", () => { bandeauMasque = maj ? maj.disponible : ""; afficherMaj(); });
+// Les liens du dépôt s'ouvrent dans le navigateur par défaut (ici, une fenêtre Chrome « appli » ouvrirait une 2e fenêtre Djåse)
+document.querySelectorAll("a[data-lien]").forEach((a) => {
+  a.addEventListener("click", (e) => { e.preventDefault(); ouvrirLien(a.href); });
+  a.addEventListener("auxclick", (e) => e.preventDefault());
+});
+
 // ---- En-tête : badge d'état et détails ; demandes de Djåse (menu de l'icône) ----
 const NOMS_ETAT = { pret: "PRÊT", chargement: "CHARGEMENT", pause: "EN PAUSE" };
 let dateHistorique = null;
@@ -569,6 +667,7 @@ async function battement() {
       el("span", {}, "Qwen ", el("b", {}, e.qwen)),
       el("span", {}, "Canary ", el("b", {}, e.canary)),
       el("span", {}, "Commande ", el("b", {}, "Ctrl+Win+Alt")));
+    if (e.maj) { maj = e.maj; afficherMaj(); suivreMaj(); }
     if (e.page && e.page !== pageActuelle) montrer(e.page);
     if (pageActuelle === "journal") chargerJournal();
     // Nouvelle dictée : on recharge l'historique, sauf pendant une écoute (le bouton ■ Arrêter serait perdu).

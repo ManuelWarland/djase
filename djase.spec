@@ -13,7 +13,7 @@ datas = [
     ("llama", "llama"),                 # llama-server.exe et ses DLL (modèle de langue, Qwen)
 ]
 binaries = []
-hiddenimports = ["chemins", "interface", "oreilles"]
+hiddenimports = ["chemins", "interface", "oreilles", "maj", "version"]
 # bibliothèques chargées à la demande dans le code (import dans une fonction) : à déclarer avec leurs fichiers
 for paquet in ["grammalecte", "onnx_asr", "onnxruntime", "sounddevice", "soundfile", "sv_ttk", "pystray",
                "huggingface_hub", "tokenizers"]:

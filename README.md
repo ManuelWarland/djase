@@ -31,11 +31,19 @@ Tout est expliqué dans le [mode d'emploi](guide/sortie/Djase_Mode_emploi.pdf) (
 
 ## Installer
 
-1. Téléchargez `Djase-0.1.0-installation.exe` dans les [versions publiées](https://github.com/ManuelWarland/djase/releases/latest).
+1. Téléchargez l'installateur (`Djase-x.y.z-installation.exe`) dans les [versions publiées](https://github.com/ManuelWarland/djase/releases/latest).
 2. Lancez-le. Pas besoin de droits d'administrateur : Djåse s'installe pour votre compte Windows seulement.
 3. Au premier lancement, Djåse télécharge ses modèles (environ 4,3 Go, depuis Hugging Face). Une coupure ne fait rien perdre : le téléchargement reprend là où il s'était arrêté.
 
 Windows peut avertir qu'il ne connaît pas l'éditeur de l'installateur (il n'est pas signé) : choisissez **Informations complémentaires**, puis **Exécuter quand même**.
+
+### Mises à jour
+
+Depuis la version 0.2.0, Djåse regarde une fois par jour s'il existe une version plus récente. Il demande seulement à GitHub le numéro de la dernière version publiée, rien d'autre. Quand il y en a une, un bandeau l'annonce dans sa fenêtre, et la page **À propos** propose **Mettre à jour** : l'installateur est téléchargé, son empreinte est contrôlée, puis il s'installe et relance Djåse. Vos modèles, votre dictionnaire et vos réglages ne bougent pas.
+
+Vous préférez que Djåse ne se connecte jamais ? Décochez **Rechercher les mises à jour** dans les Réglages (encart Système). Le bouton **Vérifier maintenant** de la page À propos reste là pour le faire à la main.
+
+Vous avez la version 0.1.0 ? Elle ne sait pas encore se mettre à jour seule : téléchargez une fois le nouvel installateur et lancez-le. Il remplace le programme et garde tout le reste.
 
 ### Ce qu'il demande
 
@@ -63,7 +71,7 @@ La liste complète des composants et de leurs licences est dans [MENTIONS.md](ME
 
 Tout ce qui vous est propre (historique, son des dictées, dictionnaire, textes rapides, réglages, journal) est rangé dans `%LOCALAPPDATA%\Djåse`, jamais dans le dossier du programme. L'historique est gardé un an, le son trente jours, et les deux se coupent dans les Réglages. Désinstaller Djåse garde ces données ; supprimez ce dossier pour tout effacer.
 
-Le seul accès à Internet est le téléchargement des modèles, au premier lancement.
+Votre voix et vos textes ne quittent jamais le PC. Djåse ne va sur Internet que pour deux choses : télécharger ses modèles au premier lancement, et lire une fois par jour le numéro de la dernière version (ce que vous pouvez couper).
 
 ## Partir du code
 
